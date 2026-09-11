@@ -1,6 +1,3 @@
-import React from 'react'
-
-
 const Input = ({
   label,
   name,
@@ -13,7 +10,6 @@ const Input = ({
   required = false,
   className = "",
 }) => {
-  
   return (
     <div className={`w-full ${className}`}>
       {label && (
@@ -22,7 +18,10 @@ const Input = ({
           className="mb-2 block text-sm font-medium text-[#172033]"
         >
           {label}
-          {required && <span className="ml-1 text-red-500">*</span>}
+
+          {required && (
+            <span className="ml-1 text-red-500">*</span>
+          )}
         </label>
       )}
 
@@ -52,6 +51,6 @@ const Input = ({
       )}
     </div>
   );
-}
+};
 
 export default Input;
