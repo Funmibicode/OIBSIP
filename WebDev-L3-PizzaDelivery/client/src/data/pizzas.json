@@ -1,0 +1,122 @@
+[
+  {
+    "id": "pizza-001",
+    "name": "Classic Pepperoni",
+    "description": "Classic pepperoni with mozzarella and tomato sauce.",
+    "image": "/images/pizzas/pepperoni.jpg",
+    "category": "Classic",
+    "price": 6500,
+    "ingredients": [
+      {
+        "id": "base-001",
+        "name": "Classic Crust"
+      },
+      {
+        "id": "sauce-001",
+        "name": "Tomato Sauce"
+      },
+      {
+        "id": "cheese-001",
+        "name": "Mozzarella"
+      },
+      {
+        "id": "vegetable-001",
+        "name": "Pepperoni"
+      }
+    ],
+    "isAvailable": true
+  },
+  {
+    "id": "pizza-002",
+    "name": "BBQ Chicken",
+    "description": "Grilled chicken, mozzarella and smoky BBQ sauce.",
+    "image": "/images/pizzas/bbq-chicken.jpg",
+    "category": "Chicken",
+    "price": 7500,
+    "ingredients": [
+      {
+        "id": "base-001",
+        "name": "Classic Crust"
+      },
+      {
+        "id": "sauce-002",
+        "name": "BBQ Sauce"
+      },
+      {
+        "id": "cheese-001",
+        "name": "Mozzarella"
+      },
+      {
+        "id": "vegetable-002",
+        "name": "Chicken"
+      }
+    ],
+    "isAvailable": true
+  },
+  {
+    "id": "pizza-003",
+    "name": "Veggie Supreme",
+    "description": "A fresh mix of vegetables with mozzarella and tomato sauce.",
+    "image": "/images/pizzas/veggie-supreme.jpg",
+    "category": "Vegetarian",
+    "price": 7000,
+    "ingredients": [
+      {
+        "id": "base-001",
+        "name": "Classic Crust"
+      },
+      {
+        "id": "sauce-001",
+        "name": "Tomato Sauce"
+      },
+      {
+        "id": "cheese-001",
+        "name": "Mozzarella"
+      },
+      {
+        "id": "vegetable-003",
+        "name": "Onions"
+      },
+      {
+        "id": "vegetable-004",
+        "name": "Green Pepper"
+      },
+      {
+        "id": "vegetable-005",
+        "name": "Mushrooms"
+      }
+    ],
+    "isAvailable": true
+  },
+  {
+    "id": "pizza-004",
+    "name": "Spicy Chicken",
+    "description": "Spicy chicken, peppers and mozzarella with a hot sauce.",
+    "image": "/images/pizzas/spicy-chicken.jpg",
+    "category": "Spicy",
+    "price": 7800,
+    "ingredients": [
+      {
+        "id": "base-002",
+        "name": "Thin Crust"
+      },
+      {
+        "id": "sauce-003",
+        "name": "Spicy Pepper Sauce"
+      },
+      {
+        "id": "cheese-001",
+        "name": "Mozzarella"
+      },
+      {
+        "id": "vegetable-002",
+        "name": "Chicken"
+      },
+      {
+        "id": "vegetable-004",
+        "name": "Green Pepper"
+      }
+    ],
+    "isAvailable": true
+  }
+]

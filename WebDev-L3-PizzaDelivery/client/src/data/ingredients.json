@@ -1,0 +1,150 @@
+[
+  {
+    "id": "base-001",
+    "name": "Classic Crust",
+    "type": "base",
+    "price": 1500,
+    "image": "/images/ingredients/classic-crust.jpg",
+    "isAvailable": true
+  },
+  {
+    "id": "base-002",
+    "name": "Thin Crust",
+    "type": "base",
+    "price": 1800,
+    "image": "/images/ingredients/thin-crust.jpg",
+    "isAvailable": true
+  },
+  {
+    "id": "base-003",
+    "name": "Cheese Burst",
+    "type": "base",
+    "price": 2500,
+    "image": "/images/ingredients/cheese-burst.jpg",
+    "isAvailable": true
+  },
+  {
+    "id": "base-004",
+    "name": "Whole Wheat",
+    "type": "base",
+    "price": 2000,
+    "image": "/images/ingredients/whole-wheat.jpg",
+    "isAvailable": true
+  },
+  {
+    "id": "base-005",
+    "name": "Stuffed Crust",
+    "type": "base",
+    "price": 2800,
+    "image": "/images/ingredients/stuffed-crust.jpg",
+    "isAvailable": true
+  },
+
+  {
+    "id": "sauce-001",
+    "name": "Tomato Sauce",
+    "type": "sauce",
+    "price": 500,
+    "isAvailable": true
+  },
+  {
+    "id": "sauce-002",
+    "name": "BBQ Sauce",
+    "type": "sauce",
+    "price": 700,
+    "isAvailable": true
+  },
+  {
+    "id": "sauce-003",
+    "name": "Spicy Pepper Sauce",
+    "type": "sauce",
+    "price": 700,
+    "isAvailable": true
+  },
+  {
+    "id": "sauce-004",
+    "name": "Garlic Cream",
+    "type": "sauce",
+    "price": 800,
+    "isAvailable": true
+  },
+  {
+    "id": "sauce-005",
+    "name": "Peri Peri Sauce",
+    "type": "sauce",
+    "price": 800,
+    "isAvailable": true
+  },
+
+  {
+    "id": "cheese-001",
+    "name": "Mozzarella",
+    "type": "cheese",
+    "price": 1000,
+    "isAvailable": true
+  },
+  {
+    "id": "cheese-002",
+    "name": "Cheddar",
+    "type": "cheese",
+    "price": 1200,
+    "isAvailable": true
+  },
+  {
+    "id": "cheese-003",
+    "name": "Parmesan",
+    "type": "cheese",
+    "price": 1400,
+    "isAvailable": true
+  },
+
+  {
+    "id": "vegetable-001",
+    "name": "Pepperoni",
+    "type": "vegetable",
+    "price": 1200,
+    "isAvailable": true
+  },
+  {
+    "id": "vegetable-002",
+    "name": "Chicken",
+    "type": "vegetable",
+    "price": 1500,
+    "isAvailable": true
+  },
+  {
+    "id": "vegetable-003",
+    "name": "Onions",
+    "type": "vegetable",
+    "price": 300,
+    "isAvailable": true
+  },
+  {
+    "id": "vegetable-004",
+    "name": "Green Pepper",
+    "type": "vegetable",
+    "price": 300,
+    "isAvailable": true
+  },
+  {
+    "id": "vegetable-005",
+    "name": "Mushrooms",
+    "type": "vegetable",
+    "price": 400,
+    "isAvailable": true
+  },
+  {
+    "id": "vegetable-006",
+    "name": "Olives",
+    "type": "vegetable",
+    "price": 350,
+    "isAvailable": true
+  },
+  {
+    "id": "vegetable-007",
+    "name": "Tomatoes",
+    "type": "vegetable",
+    "price": 300,
+    "isAvailable": true
+  }
+]
