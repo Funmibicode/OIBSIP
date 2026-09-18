@@ -1,10 +1,10 @@
-import { Eye } from "lucide-react";
+import { Eye, Package } from "lucide-react";
 import { Link } from 'react-router-dom';
 import Badge from "../ui/Badge";
 
 const AdminOrderTable = ({ orders = [] }) => {
   const getStatusVariant = (status) => {
-    const statusVariants = {
+    const variants = {
       "Order Received": "info",
       "In Kitchen": "warning",
       "Sent to Delivery": "purple",
@@ -12,14 +12,35 @@ const AdminOrderTable = ({ orders = [] }) => {
       Cancelled: "danger",
     };
 
-    return statusVariants[status] || "default";
+    return variants[status] || "default";
   };
 
-  if (orders.length === 0) {
+  const getPaymentVariant = (status) => {
+    const variants = {
+      Paid: "success",
+      Pending: "warning",
+      Refunded: "danger",
+      Failed: "danger",
+    };
+
+    return variants[status] || "default";
+  };
+
+  if (!orders.length) {
     return (
-      <div className="rounded-2xl border border-slate-100 bg-white px-6 py-12 text-center shadow-sm">
-        <p className="text-sm font-medium text-slate-500">
-          No orders found.
+      <div className="rounded-2xl border border-slate-100 bg-white p-10 text-center shadow-sm">
+        <Package
+          size={36}
+          className="mx-auto text-slate-300"
+          strokeWidth={1.8}
+        />
+
+        <h3 className="mt-4 text-base font-bold text-[#172033]">
+          No orders found
+        </h3>
+
+        <p className="mt-1 text-sm text-slate-400">
+          There are no orders to display right now.
         </p>
       </div>
     );
@@ -27,52 +48,32 @@ const AdminOrderTable = ({ orders = [] }) => {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-      {/* Table Header */}
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <div>
-          <h2 className="text-base font-bold text-[#172033]">
-            Recent Orders
-          </h2>
-
-          <p className="mt-1 text-xs text-slate-400">
-            Manage and monitor customer orders
-          </p>
-        </div>
-
-        <Link
-          to="/admin/dashboard?section=orders"
-          className="text-sm font-semibold text-[#27245B] transition hover:text-yellow-500"
-        >
-          View All
-        </Link>
-      </div>
-
       {/* Desktop Table */}
       <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[750px]">
+        <table className="w-full min-w-[900px]">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/70">
-              <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                 Order
               </th>
 
-              <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                Customer
-              </th>
-
-              <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                 Items
               </th>
 
-              <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                 Total
               </th>
 
-              <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                Payment
+              </th>
+
+              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                 Status
               </th>
 
-              <th className="px-5 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-400">
+              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                 Action
               </th>
             </tr>
@@ -86,39 +87,51 @@ const AdminOrderTable = ({ orders = [] }) => {
               >
                 {/* Order */}
                 <td className="px-5 py-4">
-                  <p className="text-sm font-bold text-[#172033]">
-                    #{order.id}
-                  </p>
+                  <div>
+                    <p className="text-sm font-bold text-[#172033]">
+                      {order.orderNumber}
+                    </p>
 
-                  <p className="mt-1 text-xs text-slate-400">
-                    {order.date}
-                  </p>
-                </td>
-
-                {/* Customer */}
-                <td className="px-5 py-4">
-                  <p className="text-sm font-semibold text-[#172033]">
-                    {order.customer?.name || "Unknown Customer"}
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-400">
-                    {order.customer?.email || "No email"}
-                  </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {order.createdAt}
+                    </p>
+                  </div>
                 </td>
 
                 {/* Items */}
                 <td className="px-5 py-4">
-                  <p className="text-sm text-slate-600">
-                    {order.items?.length || 0}{" "}
-                    {order.items?.length === 1 ? "item" : "items"}
-                  </p>
+                  <div>
+                    <p className="text-sm font-semibold text-[#172033]">
+                      {order.items.length}{" "}
+                      {order.items.length === 1 ? "item" : "items"}
+                    </p>
+
+                    <p className="mt-1 max-w-[180px] truncate text-xs text-slate-400">
+                      {order.items
+                        .map((item) => `${item.quantity}x ${item.name}`)
+                        .join(", ")}
+                    </p>
+                  </div>
                 </td>
 
                 {/* Total */}
                 <td className="px-5 py-4">
                   <p className="text-sm font-bold text-[#172033]">
-                    ₦{Number(order.total || 0).toLocaleString()}
+                    ₦{order.total.toLocaleString()}
                   </p>
+                </td>
+
+                {/* Payment */}
+                <td className="px-5 py-4">
+                  <div>
+                    <Badge variant={getPaymentVariant(order.paymentStatus)}>
+                      {order.paymentStatus}
+                    </Badge>
+
+                    <p className="mt-1 text-xs text-slate-400">
+                      {order.paymentMethod}
+                    </p>
+                  </div>
                 </td>
 
                 {/* Status */}
@@ -129,13 +142,13 @@ const AdminOrderTable = ({ orders = [] }) => {
                 </td>
 
                 {/* Action */}
-                <td className="px-5 py-4 text-right">
+                <td className="px-5 py-4">
                   <Link
                     to={`/orders/${order.id}`}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#27245B]/10 hover:text-[#27245B]"
-                    aria-label={`View order ${order.id}`}
+                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-[#27245B] transition hover:bg-[#27245B]/10"
                   >
-                    <Eye size={18} strokeWidth={2} />
+                    <Eye size={15} strokeWidth={2} />
+                    View
                   </Link>
                 </td>
               </tr>
@@ -144,18 +157,22 @@ const AdminOrderTable = ({ orders = [] }) => {
         </table>
       </div>
 
-      {/* Mobile Orders */}
+      {/* Mobile Cards */}
       <div className="divide-y divide-slate-100 md:hidden">
         {orders.map((order) => (
-          <div key={order.id} className="p-5">
-            <div className="flex items-start justify-between gap-4">
+          <div
+            key={order.id}
+            className="p-5"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-bold text-[#172033]">
-                  #{order.id}
+                  {order.orderNumber}
                 </p>
 
                 <p className="mt-1 text-xs text-slate-400">
-                  {order.date}
+                  {order.createdAt}
                 </p>
               </div>
 
@@ -164,31 +181,61 @@ const AdminOrderTable = ({ orders = [] }) => {
               </Badge>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-slate-400">
-                  Customer
-                </p>
+            {/* Items */}
+            <div className="mt-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Items
+              </p>
 
-                <p className="mt-1 text-sm font-semibold text-[#172033]">
-                  {order.customer?.name || "Unknown Customer"}
-                </p>
+              <div className="mt-2 space-y-1">
+                {order.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-3 text-sm"
+                  >
+                    <span className="truncate text-slate-600">
+                      {item.quantity}x {item.name}
+                    </span>
+
+                    <span className="shrink-0 font-semibold text-[#172033]">
+                      ₦{item.price.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
               </div>
+            </div>
 
-              <div>
+            {/* Order Details */}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs text-slate-400">
                   Total
                 </p>
 
                 <p className="mt-1 text-sm font-bold text-[#172033]">
-                  ₦{Number(order.total || 0).toLocaleString()}
+                  ₦{order.total.toLocaleString()}
                 </p>
+              </div>
+
+              <div className="rounded-xl bg-slate-50 p-3">
+                <p className="text-xs text-slate-400">
+                  Payment
+                </p>
+
+                <div className="mt-1">
+                  <Badge
+                    variant={getPaymentVariant(order.paymentStatus)}
+                  >
+                    {order.paymentStatus}
+                  </Badge>
+                </div>
               </div>
             </div>
 
+            {/* Action */}
             <Link
               to={`/orders/${order.id}`}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#27245B] transition hover:bg-slate-50"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#27245B] transition hover:bg-[#27245B] hover:text-white"
             >
               <Eye size={17} strokeWidth={2} />
               View Order

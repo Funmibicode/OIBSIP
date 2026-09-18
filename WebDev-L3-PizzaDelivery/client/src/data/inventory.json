@@ -1,0 +1,66 @@
+[
+  {
+    "id": "inv-001",
+    "name": "Pizza Dough",
+    "category": "Base",
+    "quantity": 42,
+    "unit": "pieces",
+    "threshold": 10
+  },
+  {
+    "id": "inv-002",
+    "name": "Tomato Sauce",
+    "category": "Sauce",
+    "quantity": 8,
+    "unit": "litres",
+    "threshold": 10
+  },
+  {
+    "id": "inv-003",
+    "name": "Mozzarella Cheese",
+    "category": "Cheese",
+    "quantity": 25,
+    "unit": "kg",
+    "threshold": 5
+  },
+  {
+    "id": "inv-004",
+    "name": "Cheddar Cheese",
+    "category": "Cheese",
+    "quantity": 4,
+    "unit": "kg",
+    "threshold": 5
+  },
+  {
+    "id": "inv-005",
+    "name": "Pepperoni",
+    "category": "Topping",
+    "quantity": 18,
+    "unit": "kg",
+    "threshold": 5
+  },
+  {
+    "id": "inv-006",
+    "name": "Chicken",
+    "category": "Topping",
+    "quantity": 3,
+    "unit": "kg",
+    "threshold": 5
+  },
+  {
+    "id": "inv-007",
+    "name": "Green Pepper",
+    "category": "Vegetable",
+    "quantity": 12,
+    "unit": "kg",
+    "threshold": 5
+  },
+  {
+    "id": "inv-008",
+    "name": "Onions",
+    "category": "Vegetable",
+    "quantity": 0,
+    "unit": "kg",
+    "threshold": 5
+  }
+]
