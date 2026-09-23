@@ -1,0 +1,88 @@
+[
+  {
+    "id": "ord_001",
+    "orderNumber": "PZ-1024",
+    "status": "Delivered",
+    "items": [
+      {
+        "id": "item_001",
+        "name": "Pepperoni Feast",
+        "quantity": 1,
+        "size": "Large",
+        "price": 8500
+      },
+      {
+        "id": "item_002",
+        "name": "Garlic Bread",
+        "quantity": 1,
+        "size": "Regular",
+        "price": 2500
+      }
+    ],
+    "total": 11000,
+    "paymentStatus": "Paid",
+    "paymentMethod": "Razorpay",
+    "createdAt": "September 12, 2026"
+  },
+  {
+    "id": "ord_002",
+    "orderNumber": "PZ-1025",
+    "status": "In Kitchen",
+    "items": [
+      {
+        "id": "item_003",
+        "name": "Chicken Supreme",
+        "quantity": 1,
+        "size": "Medium",
+        "price": 7000
+      }
+    ],
+    "total": 7000,
+    "paymentStatus": "Paid",
+    "paymentMethod": "Razorpay",
+    "createdAt": "September 14, 2026"
+  },
+  {
+    "id": "ord_003",
+    "orderNumber": "PZ-1026",
+    "status": "Order Received",
+    "items": [
+      {
+        "id": "item_004",
+        "name": "Custom Pizza",
+        "quantity": 1,
+        "size": "Large",
+        "price": 9500
+      },
+      {
+        "id": "item_005",
+        "name": "Chocolate Dessert",
+        "quantity": 2,
+        "size": "Regular",
+        "price": 3000
+      }
+    ],
+    "total": 12500,
+    "paymentStatus": "Paid",
+    "paymentMethod": "Razorpay",
+    "createdAt": "September 14, 2026"
+  },
+  {
+    "id": "ord_004",
+    "orderNumber": "PZ-1027",
+    "status": "Cancelled",
+    "items": [
+      {
+        "id": "item_006",
+        "name": "BBQ Chicken Pizza",
+        "quantity": 1,
+        "size": "Medium",
+        "price": 6500
+      }
+    ],
+    "total": 6500,
+    "paymentStatus": "Refunded",
+    "paymentMethod": "Razorpay",
+    "createdAt": "September 10, 2026"
+  }
+]
