@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { ArrowRight, Check } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 import ingredients from "../../data/ingredients.json";
 import BuilderProgress from "./BuilderProgress";
 import BaseSelector from "./BaseSelector";
@@ -9,6 +11,8 @@ import PizzaPreview from "./PizzaPreview";
 import PriceSummary from "./PriceSummary";
 
 const PizzaBuilder = () => {
+  const navigate = useNavigate();
+
   const [selectedBase, setSelectedBase] = useState("");
   const [selectedSauce, setSelectedSauce] = useState("");
   const [selectedCheese, setSelectedCheese] = useState("");
@@ -62,6 +66,31 @@ const PizzaBuilder = () => {
     toppings: vegetables.map((vegetable) => vegetable.name),
   };
 
+  // Every builder section must be completed
+  const isPizzaComplete =
+    selectedBase &&
+    selectedSauce &&
+    selectedCheese &&
+    selectedVegetables.length > 0;
+
+  const handleContinue = () => {
+    if (!isPizzaComplete) {
+      return;
+    }
+
+    navigate("/checkout", {
+      state: {
+        pizza: selectedPizza,
+        ingredients: {
+          base,
+          sauce,
+          cheese,
+          vegetables,
+        },
+      },
+    });
+  };
+
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
@@ -113,6 +142,36 @@ const PizzaBuilder = () => {
             cheese={cheese}
             vegetables={vegetables}
           />
+
+          {/* Continue to Checkout */}
+          <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+            {!isPizzaComplete && (
+              <p className="mb-3 text-center text-xs text-slate-500">
+                Complete all pizza selections to continue.
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={!isPizzaComplete}
+              className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold transition-all duration-200 ${
+                isPizzaComplete
+                  ? "bg-yellow-400 text-slate-950 shadow-sm hover:bg-yellow-300"
+                  : "cursor-not-allowed bg-slate-100 text-slate-400"
+              }`}
+            >
+              {isPizzaComplete ? (
+                <>
+                  <Check size={18} strokeWidth={2.5} />
+                  Continue to Checkout
+                  <ArrowRight size={18} strokeWidth={2.5} />
+                </>
+              ) : (
+                "Complete Your Pizza"
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </section>

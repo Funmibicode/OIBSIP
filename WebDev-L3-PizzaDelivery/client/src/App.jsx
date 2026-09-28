@@ -1,31 +1,45 @@
-import PizzaBuilder from "./components/pizza/PizzaBuilder";
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-import PizzaGrid from "./components/pizza/PizzaGrid";
-
+import Dashboard from "./pages/customer/DashboardPage";
+import PizzaBuilderPage from "./pages/customer/PizzaBuilderPage";
+import Checkout from "./pages/customer/CheckoutPage";
+import Orders from "./pages/customer/OrdersPage";
+import OrderDetails from "./pages/customer/OrderDetailsPage";
 
 const App = () => {
   return (
-    <div className="min-h-screen bg-[#F8F9FF]">
-      <PizzaBuilder />
-
-      <div className="min-h-screen bg-[#F8F9FF]">
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#172033] sm:text-3xl">
-            Our Pizzas
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Choose from our selection of delicious pizzas.
-          </p>
-        </div>
-
-        <PizzaGrid />
-      </div>
-    </div>
-  
+    <BrowserRouter>
+      <Routes>
+        
+    
+        
       
-    </div>
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route
+          path="/order-pizza"
+          element={<PizzaBuilderPage />}
+        />
+
+        <Route
+          path="/Checkout"
+          element={<Checkout />}
+        />
+
+         <Route
+          path="/orders"
+          element={<Orders />}
+        />
+
+        <Route
+          path="/orders/:orderId"
+          element={<OrderDetails />}
+        />
+
+      
+
+      </Routes>
+    </BrowserRouter>
   );
 };
 
