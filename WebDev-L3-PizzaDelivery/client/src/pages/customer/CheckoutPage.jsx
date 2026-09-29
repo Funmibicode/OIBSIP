@@ -15,13 +15,10 @@ import Button from "../../components/ui/Button";
 const Checkout = () => {
   const location = useLocation();
 
-  const pizzaData = location.state;
+  const orderData = location.state;
 
-  /*
-   * If the user somehow visits /checkout directly without
-   * coming from the Pizza Builder, there will be no pizza data.
-   */
-  if (!pizzaData?.pizza || !pizzaData?.ingredients) {
+  
+  if (!orderData?.pizza) {
     return (
       <CustomerLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
@@ -39,7 +36,8 @@ const Checkout = () => {
             </h1>
 
             <p className="mt-2 text-sm leading-6 text-slate-500">
-              Please build your pizza first before proceeding to checkout.
+              Please select a pizza or build your own pizza before
+              proceeding to checkout.
             </p>
 
             <Link to="/order-pizza" className="mt-6 inline-flex">
@@ -53,19 +51,39 @@ const Checkout = () => {
     );
   }
 
-  const { pizza, ingredients } = pizzaData;
+  const { pizza, type } = orderData;
 
-  const basePrice = ingredients.base?.price || 0;
-  const saucePrice = ingredients.sauce?.price || 0;
-  const cheesePrice = ingredients.cheese?.price || 0;
+  /*
+   * Preset pizzas already have a fixed price
+   
+   */
+  let subtotal = 0;
 
-  const vegetablesPrice = ingredients.vegetables.reduce(
-    (total, vegetable) => total + (vegetable.price || 0),
-    0
-  );
+  if (type === "preset") {
+    subtotal = orderData.price || 0;
+  }
 
-  const subtotal =
-    basePrice + saucePrice + cheesePrice + vegetablesPrice;
+  /*
+   * Custom pizzas don't have a predefined price.
+   * We calculate their price from the selected ingredients.
+   */
+  if (type === "custom") {
+    const basePrice = orderData.ingredients?.base?.price || 0;
+    const saucePrice = orderData.ingredients?.sauce?.price || 0;
+    const cheesePrice = orderData.ingredients?.cheese?.price || 0;
+
+    const vegetablesPrice =
+      orderData.ingredients?.vegetables?.reduce(
+        (total, vegetable) => total + (vegetable.price || 0),
+        0
+      ) || 0;
+
+    subtotal =
+      basePrice +
+      saucePrice +
+      cheesePrice +
+      vegetablesPrice;
+  }
 
   const deliveryFee = 1000;
   const total = subtotal + deliveryFee;
@@ -88,8 +106,8 @@ const Checkout = () => {
           </h1>
 
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Review your order, confirm your delivery details, and complete
-            your payment.
+            Review your order, confirm your delivery details, and
+            complete your payment.
           </p>
         </div>
 
@@ -177,7 +195,7 @@ const Checkout = () => {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <h3 className="text-sm font-bold text-[#172033]">
-                        Custom Pizza
+                        {pizza.name}
                       </h3>
 
                       <span className="text-sm font-extrabold text-[#27245B]">
@@ -190,7 +208,7 @@ const Checkout = () => {
                       {pizza.cheese} cheese
                     </p>
 
-                    {pizza.toppings.length > 0 && (
+                    {pizza.toppings?.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {pizza.toppings.map((topping) => (
                           <span
@@ -266,7 +284,11 @@ const Checkout = () => {
 
               <div className="mt-5 space-y-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Pizza</span>
+                  <span className="text-slate-500">
+                    {type === "preset"
+                      ? "Pizza"
+                      : "Custom Pizza"}
+                  </span>
 
                   <span className="font-semibold text-[#172033]">
                     ₦{subtotal.toLocaleString()}
@@ -274,7 +296,9 @@ const Checkout = () => {
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Delivery Fee</span>
+                  <span className="text-slate-500">
+                    Delivery Fee
+                  </span>
 
                   <span className="font-semibold text-[#172033]">
                     ₦{deliveryFee.toLocaleString()}
@@ -311,8 +335,8 @@ const Checkout = () => {
                 />
 
                 <p className="text-xs leading-5 text-green-700">
-                  Your payment will be securely processed through Razorpay
-                  test mode.
+                  Your payment will be securely processed through
+                  Razorpay test mode.
                 </p>
               </div>
 

@@ -74,23 +74,25 @@ const PizzaBuilder = () => {
     selectedVegetables.length > 0;
 
   const handleContinue = () => {
-    if (!isPizzaComplete) {
-      return;
-    }
+  if (!isPizzaComplete) {
+    return;
+  }
 
-    navigate("/checkout", {
-      state: {
-        pizza: selectedPizza,
-        ingredients: {
-          base,
-          sauce,
-          cheese,
-          vegetables,
-        },
+  navigate("/checkout", {
+    state: {
+      type: "custom",
+      pizza: selectedPizza,
+      ingredients: {
+        base,
+        sauce,
+        cheese,
+        vegetables,
       },
-    });
-  };
+    },
+  });
+};
 
+  
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
