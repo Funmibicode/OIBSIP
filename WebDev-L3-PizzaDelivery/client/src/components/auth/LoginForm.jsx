@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from "lucide-react";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Input from "../ui/Input";
 import Button from "../ui/Button";
+import authService from "../../services/authService";
+import useAuth from "../../hooks/useAuth";
 
-const LoginForm = () => {
+const LoginForm = ({ isAdmin = false }) => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
@@ -25,6 +32,8 @@ const LoginForm = () => {
       ...previous,
       [name]: "",
     }));
+
+    setServerError("");
   };
 
   const validateForm = () => {
@@ -41,8 +50,10 @@ const LoginForm = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setServerError("");
 
     const validationErrors = validateForm();
 
@@ -51,11 +62,33 @@ const LoginForm = () => {
       return;
     }
 
-    console.log("Login data:", formData);
+    try {
+      setIsLoading(true);
+
+      const response = await authService.login(formData);
+
+      login(response.user, response.token);
+
+      navigate(isAdmin ? "/admin/dashboard" : "/dashboard");
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        "Login failed. Please check your credentials.";
+
+      setServerError(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {serverError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {serverError}
+        </div>
+      )}
+
       <Input
         label="Email Address"
         name="email"
@@ -85,11 +118,7 @@ const LoginForm = () => {
           className="absolute right-3 top-[38px] flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-[#27245B]"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
-          {showPassword ? (
-            <EyeOff size={18} />
-          ) : (
-            <Eye size={18} />
-          )}
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       </div>
 
@@ -112,19 +141,26 @@ const LoginForm = () => {
         </Link>
       </div>
 
-      <Button type="submit" size="lg" className="w-full">
-        Login
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full"
+        disabled={isLoading}
+      >
+        {isLoading ? "Logging in..." : "Login"}
       </Button>
 
-      <p className="text-center text-sm text-slate-500">
-        Don't have an account?{" "}
-        <Link
-          to="/register"
-          className="font-semibold text-[#27245B] hover:underline"
-        >
-          Create account
-        </Link>
-      </p>
+      {!isAdmin && (
+        <p className="text-center text-sm text-slate-500">
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className="font-semibold text-[#27245B] hover:underline"
+          >
+            Create account
+          </Link>
+        </p>
+      )}
     </form>
   );
 };

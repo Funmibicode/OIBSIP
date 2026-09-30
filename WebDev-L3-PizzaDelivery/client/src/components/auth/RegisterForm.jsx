@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from "lucide-react";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Input from "../ui/Input";
 import Button from "../ui/Button";
+import authService from "../../services/authService";
+import useAuth from "../../hooks/useAuth";
 
 const RegisterForm = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -13,6 +18,9 @@ const RegisterForm = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -28,6 +36,8 @@ const RegisterForm = () => {
       ...previous,
       [name]: "",
     }));
+
+    setServerError("");
   };
 
   const validateForm = () => {
@@ -56,8 +66,10 @@ const RegisterForm = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setServerError("");
 
     const validationErrors = validateForm();
 
@@ -66,11 +78,38 @@ const RegisterForm = () => {
       return;
     }
 
-    console.log("Registration data:", formData);
+    try {
+      setIsLoading(true);
+
+      const { confirmPassword, ...registrationData } = formData;
+
+      const response = await authService.register(registrationData);
+
+      if (response?.token && response?.user) {
+        login(response.user, response.token);
+        navigate("/dashboard");
+      } else {
+        navigate("/verify-email");
+      }
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        "Registration failed. Please try again.";
+
+      setServerError(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {serverError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {serverError}
+        </div>
+      )}
+
       <Input
         label="Full Name"
         name="name"
@@ -111,11 +150,7 @@ const RegisterForm = () => {
           className="absolute right-3 top-[38px] flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-[#27245B]"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
-          {showPassword ? (
-            <EyeOff size={18} />
-          ) : (
-            <Eye size={18} />
-          )}
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       </div>
 
@@ -171,8 +206,13 @@ const RegisterForm = () => {
         </span>
       </label>
 
-      <Button type="submit" size="lg" className="w-full">
-        Create Account
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full"
+        disabled={isLoading}
+      >
+        {isLoading ? "Creating Account..." : "Create Account"}
       </Button>
 
       <p className="text-center text-sm text-slate-500">
