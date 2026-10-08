@@ -1,17 +1,12 @@
-import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from "lucide-react";
-import ingredients from "../../data/ingredients.json";
+import { useState } from "react";
 
 const VegetableSelector = ({
+  vegetables = [],
   selectedVegetables,
-  setSelectedVegetables
+  setSelectedVegetables,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  
-
-  const vegetables = ingredients.filter(
-    (ingredient) => ingredient.type === "vegetable"
-  );
 
   const handleVegetableChange = (vegetableId) => {
     setSelectedVegetables((prev) =>
@@ -22,74 +17,63 @@ const VegetableSelector = ({
   };
 
   return (
-    <div className="rounded-2xl bg-white shadow-sm">
-      {/* Header */}
+    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        aria-expanded={isOpen}
-        className="flex w-full items-center justify-between p-5 text-left"
+        className="flex w-full items-center justify-between"
       >
         <div>
-          <h3 className="font-semibold text-[#172033]">
-            Vegetables
-          </h3>
+          <h2 className="text-lg font-bold text-[#172033]">
+            Choose Your Toppings
+          </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            {selectedVegetables.length > 0
-              ? `${selectedVegetables.length} selected`
-              : "Choose your vegetables"}
+            Select one or more toppings.
           </p>
         </div>
 
         {isOpen ? (
-          <ChevronUp size={20} className="text-[#27245B]" />
+          <ChevronUp size={20} className="text-slate-500" />
         ) : (
-          <ChevronDown size={20} className="text-[#27245B]" />
+          <ChevronDown size={20} className="text-slate-500" />
         )}
       </button>
 
-      {/* Vegetable Options */}
       {isOpen && (
-        <div className="border-t border-slate-100 px-5 pb-5 pt-3">
-          <div className="space-y-2">
-            {vegetables.map((vegetable) => {
-              const isSelected = selectedVegetables.includes(
-                vegetable.id
-              );
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {vegetables.map((vegetable) => {
+            const isSelected = selectedVegetables.includes(vegetable.id);
 
-              return (
-                <label
-                  key={vegetable.id}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-all ${
-                    isSelected
-                      ? "border-[#27245B] bg-[#27245B]/5"
-                      : "border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      value={vegetable.id}
-                      checked={isSelected}
-                      onChange={() =>
-                        handleVegetableChange(vegetable.id)
-                      }
-                      className="h-4 w-4 rounded accent-[#27245B]"
-                    />
-
-                    <span className="text-sm font-medium text-[#172033]">
+            return (
+              <button
+                key={vegetable.id}
+                type="button"
+                onClick={() => handleVegetableChange(vegetable.id)}
+                className={`rounded-xl border p-4 text-left transition ${
+                  isSelected
+                    ? "border-[#27245B] bg-[#27245B]/5 ring-2 ring-[#27245B]/10"
+                    : "border-slate-200 hover:border-[#27245B]/40 hover:bg-slate-50"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-[#172033]">
                       {vegetable.name}
-                    </span>
+                    </p>
+
+                    <p className="mt-1 text-xs text-slate-500">
+                      ₦{vegetable.price.toLocaleString()}
+                    </p>
                   </div>
 
-                  <span className="text-sm font-semibold text-[#27245B]">
-                    ₦{vegetable.price.toLocaleString()}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
+                  {isSelected && (
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#27245B]" />
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

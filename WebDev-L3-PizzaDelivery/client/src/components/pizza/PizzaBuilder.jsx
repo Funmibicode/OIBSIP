@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, AlertCircle, LoaderCircle } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
-import ingredients from "../../data/ingredients.json";
+import usePizza from "../../hooks/usePizza";
 import BuilderProgress from "./BuilderProgress";
 import BaseSelector from "./BaseSelector";
 import SauceSelector from "./SauceSelector";
@@ -13,10 +13,33 @@ import PriceSummary from "./PriceSummary";
 const PizzaBuilder = () => {
   const navigate = useNavigate();
 
+  const {
+    ingredients,
+    isLoading,
+    error,
+    refetch,
+  } = usePizza();
+
   const [selectedBase, setSelectedBase] = useState("");
   const [selectedSauce, setSelectedSauce] = useState("");
   const [selectedCheese, setSelectedCheese] = useState("");
   const [selectedVegetables, setSelectedVegetables] = useState([]);
+
+  const bases = ingredients.filter(
+    (ingredient) => ingredient.type === "base"
+  );
+
+  const sauces = ingredients.filter(
+    (ingredient) => ingredient.type === "sauce"
+  );
+
+  const cheeses = ingredients.filter(
+    (ingredient) => ingredient.type === "cheese"
+  );
+
+  const vegetables = ingredients.filter(
+    (ingredient) => ingredient.type === "vegetable"
+  );
 
   const steps = [
     { id: "base", label: "Base" },
@@ -27,46 +50,38 @@ const PizzaBuilder = () => {
 
   const completedSteps = [];
 
-  if (selectedBase) {
-    completedSteps.push("base");
-  }
-
-  if (selectedSauce) {
-    completedSteps.push("sauce");
-  }
-
-  if (selectedCheese) {
-    completedSteps.push("cheese");
-  }
-
+  if (selectedBase) completedSteps.push("base");
+  if (selectedSauce) completedSteps.push("sauce");
+  if (selectedCheese) completedSteps.push("cheese");
   if (selectedVegetables.length > 0) {
     completedSteps.push("vegetables");
   }
 
-  const base = ingredients.find(
+  const base = bases.find(
     (ingredient) => ingredient.id === selectedBase
   );
 
-  const sauce = ingredients.find(
+  const sauce = sauces.find(
     (ingredient) => ingredient.id === selectedSauce
   );
 
-  const cheese = ingredients.find(
+  const cheese = cheeses.find(
     (ingredient) => ingredient.id === selectedCheese
   );
 
-  const vegetables = ingredients.filter((ingredient) =>
-    selectedVegetables.includes(ingredient.id)
+  const selectedVegetableData = vegetables.filter(
+    (ingredient) => selectedVegetables.includes(ingredient.id)
   );
 
   const selectedPizza = {
     base: base?.name || "",
     sauce: sauce?.name || "",
     cheese: cheese?.name || "",
-    toppings: vegetables.map((vegetable) => vegetable.name),
+    toppings: selectedVegetableData.map(
+      (vegetable) => vegetable.name
+    ),
   };
 
-  // Every builder section must be completed
   const isPizzaComplete =
     selectedBase &&
     selectedSauce &&
@@ -74,107 +89,154 @@ const PizzaBuilder = () => {
     selectedVegetables.length > 0;
 
   const handleContinue = () => {
-  if (!isPizzaComplete) {
-    return;
+    if (!isPizzaComplete) return;
+
+    navigate("/checkout", {
+      state: {
+        type: "custom",
+        pizza: selectedPizza,
+        ingredients: {
+          base,
+          sauce,
+          cheese,
+          vegetables: selectedVegetableData,
+        },
+      },
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <section className="flex min-h-[500px] items-center justify-center">
+        <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
+          <LoaderCircle
+            size={21}
+            className="animate-spin text-[#27245B]"
+          />
+          <span>Loading ingredients...</span>
+        </div>
+      </section>
+    );
   }
 
-  navigate("/checkout", {
-    state: {
-      type: "custom",
-      pizza: selectedPizza,
-      ingredients: {
-        base,
-        sauce,
-        cheese,
-        vegetables,
-      },
-    },
-  });
-};
+  if (error) {
+    return (
+      <section className="flex min-h-[500px] items-center justify-center">
+        <div className="max-w-md rounded-2xl border border-red-100 bg-white p-7 text-center shadow-sm">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-red-50">
+            <AlertCircle
+              size={24}
+              className="text-red-500"
+            />
+          </div>
 
-  
+          <h2 className="mt-4 text-lg font-bold text-[#172033]">
+            Unable to load ingredients
+          </h2>
+
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            {error}
+          </p>
+
+          <button
+            type="button"
+            onClick={refetch}
+            className="mt-5 rounded-xl bg-[#27245B] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#332F70]"
+          >
+            Try Again
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#172033] sm:text-3xl">
+    <section className="space-y-6">
+      {/* Header */}
+      <div>
+        <p className="text-sm font-semibold text-[#27245B]">
+          Custom Pizza
+        </p>
+
+        <h1 className="mt-1 text-2xl font-extrabold text-[#172033]">
           Build Your Pizza
         </h1>
 
-        <p className="mt-2 text-sm text-slate-500 sm:text-base">
-          Choose your favorite base, sauce, cheese and toppings.
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Choose your base, sauce, cheese, and favorite toppings.
         </p>
       </div>
 
-      <div className="mb-8 rounded-2xl bg-white p-5 shadow-sm">
-        <BuilderProgress
-          steps={steps}
-          completedSteps={completedSteps}
-        />
-      </div>
+      {/* Progress */}
+      <BuilderProgress
+        steps={steps}
+        completedSteps={completedSteps}
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <div className="space-y-4">
-          <BaseSelector
-            selectedBase={selectedBase}
-            setSelectedBase={setSelectedBase}
-          />
+      {/* Base */}
+      <BaseSelector
+        bases={bases}
+        selectedBase={selectedBase}
+        setSelectedBase={setSelectedBase}
+      />
 
-          <SauceSelector
-            selectedSauce={selectedSauce}
-            setSelectedSauce={setSelectedSauce}
-          />
+      {/* Sauce */}
+      <SauceSelector
+        sauces={sauces}
+        selectedSauce={selectedSauce}
+        setSelectedSauce={setSelectedSauce}
+      />
 
-          <CheeseSelector
-            selectedCheese={selectedCheese}
-            setSelectedCheese={setSelectedCheese}
-          />
+      {/* Cheese */}
+      <CheeseSelector
+        cheeses={cheeses}
+        selectedCheese={selectedCheese}
+        setSelectedCheese={setSelectedCheese}
+      />
 
-          <VegetableSelector
-            selectedVegetables={selectedVegetables}
-            setSelectedVegetables={setSelectedVegetables}
-          />
-        </div>
+      {/* Vegetables */}
+      <VegetableSelector
+        vegetables={vegetables}
+        selectedVegetables={selectedVegetables}
+        setSelectedVegetables={setSelectedVegetables}
+      />
 
-        <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-          <PizzaPreview pizza={selectedPizza} />
+      {/* Preview */}
+      <PizzaPreview pizza={selectedPizza} />
 
-          <PriceSummary
-            base={base}
-            sauce={sauce}
-            cheese={cheese}
-            vegetables={vegetables}
-          />
+      {/* Price */}
+      <PriceSummary
+        base={base}
+        sauce={sauce}
+        cheese={cheese}
+        vegetables={selectedVegetableData}
+        onContinue={handleContinue}
+      />
 
-          {/* Continue to Checkout */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-            {!isPizzaComplete && (
-              <p className="mb-3 text-center text-xs text-slate-500">
-                Complete all pizza selections to continue.
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={handleContinue}
-              disabled={!isPizzaComplete}
-              className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold transition-all duration-200 ${
-                isPizzaComplete
-                  ? "bg-yellow-400 text-slate-950 shadow-sm hover:bg-yellow-300"
-                  : "cursor-not-allowed bg-slate-100 text-slate-400"
-              }`}
-            >
-              {isPizzaComplete ? (
-                <>
-                  <Check size={18} strokeWidth={2.5} />
-                  Continue to Checkout
-                  <ArrowRight size={18} strokeWidth={2.5} />
-                </>
-              ) : (
-                "Complete Your Pizza"
-              )}
-            </button>
+      {/* Completion */}
+      {isPizzaComplete && (
+        <div className="flex items-center gap-3 rounded-xl border border-green-100 bg-green-50 px-4 py-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
+            <Check size={17} className="text-green-600" />
           </div>
+
+          <p className="text-sm font-medium text-green-700">
+            Your pizza is ready. Continue to checkout.
+          </p>
         </div>
+      )}
+
+      {/* Continue */}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          disabled={!isPizzaComplete}
+          onClick={handleContinue}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#27245B] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#332F70] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Continue to Checkout
+          <ArrowRight size={17} />
+        </button>
       </div>
     </section>
   );
