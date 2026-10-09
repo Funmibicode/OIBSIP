@@ -7,252 +7,293 @@ import {
   Search,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import Badge from "../../components/ui/Badge";
+import useOrders from "../../hooks/useOrders";
 
 const Orders = () => {
-  const orders = [
-    {
-      id: "PZ-1048",
-      date: "Sep 24, 2026",
-      pizza: "Pepperoni Classic",
-      description: "Classic base, tomato sauce, mozzarella & pepperoni",
-      quantity: 1,
-      total: 8500,
-      status: "In Kitchen",
-      statusVariant: "warning",
-    },
-    {
-      id: "PZ-1042",
-      date: "Sep 20, 2026",
-      pizza: "Chicken Supreme",
-      description: "Classic base, tomato sauce, mozzarella, chicken & vegetables",
-      quantity: 2,
-      total: 19000,
-      status: "Delivered",
-      statusVariant: "success",
-    },
-    {
-      id: "PZ-1035",
-      date: "Sep 15, 2026",
-      pizza: "Veggie Delight",
-      description: "Classic base, tomato sauce, mozzarella & fresh vegetables",
-      quantity: 1,
-      total: 8000,
-      status: "Delivered",
-      statusVariant: "success",
-    },
-    {
-      id: "PZ-1028",
-      date: "Sep 10, 2026",
-      pizza: "Custom Pizza",
-      description: "Classic base, BBQ sauce, cheddar & mixed vegetables",
-      quantity: 1,
-      total: 9000,
-      status: "Cancelled",
-      statusVariant: "danger",
-    },
-  ];
+  const {
+    orders,
+    fetchOrders,
+    isLoading,
+    error,
+  } = useOrders();
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    fetchOrders().catch(() => {});
+  }, [fetchOrders]);
+
+  const formatDate = (date) => {
+    if (!date) return "Date unavailable";
+
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const getStatusVariant = (status) => {
+    const variants = {
+      "Order Received": "info",
+      "In Kitchen": "warning",
+      "Sent to Delivery": "purple",
+      Delivered: "success",
+      Cancelled: "danger",
+    };
+
+    return variants[status] || "default";
+  };
+
+  const getOrderNumber = (order) => {
+    if (order.orderNumber) {
+      return order.orderNumber;
+    }
+
+    return `PZ-${order._id?.slice(-4).toUpperCase()}`;
+  };
+
+  const filteredOrders = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return orders;
+    }
+
+    const query = searchTerm.toLowerCase();
+
+    return orders.filter((order) => {
+      const orderNumber = getOrderNumber(order).toLowerCase();
+      const itemName =
+        order.items?.[0]?.name?.toLowerCase() || "";
+      const status = order.status?.toLowerCase() || "";
+
+      return (
+        orderNumber.includes(query) ||
+        itemName.includes(query) ||
+        status.includes(query)
+      );
+    });
+  }, [orders, searchTerm]);
+
+  const totalOrders = orders.length;
+
+  const activeOrders = orders.filter(
+    (order) =>
+      !["Delivered", "Cancelled"].includes(order.status)
+  ).length;
+
+  const completedOrders = orders.filter(
+    (order) => order.status === "Delivered"
+  ).length;
 
   return (
     <CustomerLayout>
-      <div className="space-y-6">
-        {/* Page Header */}
-        <section>
-          <h1 className="text-2xl font-extrabold text-[#172033] sm:text-3xl">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-[#172033]">
             My Orders
           </h1>
 
-          <p className="mt-2 text-sm leading-6 text-slate-500">
-            View your previous orders and track orders that are still in
-            progress.
+          <p className="mt-1 text-sm text-[#64748B]">
+            Track and manage all your pizza orders.
           </p>
-        </section>
+        </div>
 
-        {/* Summary */}
-        <section className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#27245B]/10">
-                <Package
-                  size={20}
-                  className="text-[#27245B]"
-                  strokeWidth={2}
-                />
-              </div>
-
+        {/* Summary Cards */}
+        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-400">
+                <p className="text-sm text-[#64748B]">
                   Total Orders
                 </p>
 
-                <p className="mt-0.5 text-xl font-extrabold text-[#172033]">
-                  {orders.length}
+                <p className="mt-2 text-2xl font-bold text-[#172033]">
+                  {totalOrders}
                 </p>
+              </div>
+
+              <div className="rounded-xl bg-[#F8F9FF] p-3">
+                <Package className="h-5 w-5 text-[#27245B]" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-yellow-400/20">
-                <Clock3
-                  size={20}
-                  className="text-yellow-600"
-                  strokeWidth={2}
-                />
-              </div>
-
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-400">
+                <p className="text-sm text-[#64748B]">
                   Active Orders
                 </p>
 
-                <p className="mt-0.5 text-xl font-extrabold text-[#172033]">
-                  {
-                    orders.filter(
-                      (order) =>
-                        order.status !== "Delivered" &&
-                        order.status !== "Cancelled"
-                    ).length
-                  }
+                <p className="mt-2 text-2xl font-bold text-[#172033]">
+                  {activeOrders}
                 </p>
+              </div>
+
+              <div className="rounded-xl bg-[#F8F9FF] p-3">
+                <Clock3 className="h-5 w-5 text-[#27245B]" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
-                <Pizza
-                  size={20}
-                  className="text-green-600"
-                  strokeWidth={2}
-                />
-              </div>
-
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-400">
+                <p className="text-sm text-[#64748B]">
                   Completed
                 </p>
 
-                <p className="mt-0.5 text-xl font-extrabold text-[#172033]">
-                  {
-                    orders.filter((order) => order.status === "Delivered")
-                      .length
-                  }
+                <p className="mt-2 text-2xl font-bold text-[#172033]">
+                  {completedOrders}
                 </p>
               </div>
+
+              <div className="rounded-xl bg-[#F8F9FF] p-3">
+                <Pizza className="h-5 w-5 text-[#27245B]" />
+              </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Orders Section */}
-        <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-[#172033]">
-                Order History
-              </h2>
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#64748B]" />
 
-              <p className="mt-1 text-sm text-slate-500">
-                All your pizza orders in one place.
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(event) =>
+                setSearchTerm(event.target.value)
+              }
+              placeholder="Search orders..."
+              className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-12 pr-4 text-sm outline-none transition focus:border-[#27245B]"
+            />
+          </div>
+        </div>
+
+        {/* Loading */}
+        {isLoading && (
+          <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
+            <p className="text-sm text-[#64748B]">
+              Loading your orders...
+            </p>
+          </div>
+        )}
+
+        {/* Error */}
+        {!isLoading && error && (
+          <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
+            <p className="font-medium text-red-600">
+              {error}
+            </p>
+
+            <button
+              onClick={() => fetchOrders().catch(() => {})}
+              className="mt-4 text-sm font-medium text-[#27245B]"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {/* Orders */}
+        {!isLoading &&
+          !error &&
+          filteredOrders.length > 0 && (
+            <div className="space-y-4">
+              {filteredOrders.map((order) => {
+                const firstItem = order.items?.[0];
+
+                return (
+                  <div
+                    key={order._id}
+                    className="rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+                  >
+                    <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                      <div className="flex gap-4">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-[#F8F9FF]">
+                          <Pizza className="h-8 w-8 text-[#27245B]" />
+                        </div>
+
+                        <div>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <h3 className="font-bold text-[#172033]">
+                              {getOrderNumber(order)}
+                            </h3>
+
+                            <Badge
+                              variant={getStatusVariant(
+                                order.status
+                              )}
+                            >
+                              {order.status}
+                            </Badge>
+                          </div>
+
+                          <p className="mt-1 font-medium text-[#172033]">
+                            {firstItem?.name || "Pizza Order"}
+                          </p>
+
+                          <p className="mt-1 text-sm text-[#64748B]">
+                            {order.items?.length || 0} item
+                            {order.items?.length === 1
+                              ? ""
+                              : "s"}
+                          </p>
+
+                          <div className="mt-3 flex flex-wrap gap-4 text-xs text-[#64748B]">
+                            <span className="flex items-center gap-1.5">
+                              <CalendarDays className="h-4 w-4" />
+                              {formatDate(order.createdAt)}
+                            </span>
+
+                            <span className="flex items-center gap-1.5">
+                              <Package className="h-4 w-4" />
+                              ₦
+                              {order.total?.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Link
+                        to={`/orders/${order._id}`}
+                        className="flex items-center gap-2 text-sm font-semibold text-[#27245B]"
+                      >
+                        View Order
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+        {/* Empty */}
+        {!isLoading &&
+          !error &&
+          filteredOrders.length === 0 && (
+            <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
+              <Pizza className="mx-auto h-12 w-12 text-[#27245B]" />
+
+              <h3 className="mt-4 font-bold text-[#172033]">
+                No orders found
+              </h3>
+
+              <p className="mt-2 text-sm text-[#64748B]">
+                {searchTerm
+                  ? "Try a different search."
+                  : "You haven't placed any orders yet."}
               </p>
             </div>
-
-            {/* Search - UI only for now */}
-            <div className="relative w-full sm:w-64">
-              <Search
-                size={17}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-
-              <input
-                type="text"
-                placeholder="Search orders..."
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-[#172033] outline-none transition placeholder:text-slate-400 focus:border-[#27245B] focus:ring-2 focus:ring-[#27245B]/10"
-              />
-            </div>
-          </div>
-
-          {/* Order List */}
-          <div className="space-y-4">
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="rounded-xl border border-slate-100 bg-[#F8F9FF] p-4 transition hover:border-slate-200 sm:p-5"
-              >
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                  {/* Order Info */}
-                  <div className="flex min-w-0 gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#27245B]">
-                      <Pizza
-                        size={22}
-                        className="text-yellow-400"
-                        strokeWidth={1.8}
-                      />
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-sm font-bold text-[#172033]">
-                          {order.pizza}
-                        </h3>
-
-                        <Badge variant={order.statusVariant}>
-                          {order.status}
-                        </Badge>
-                      </div>
-
-                      <p className="mt-1 max-w-xl text-xs leading-5 text-slate-500">
-                        {order.description}
-                      </p>
-
-                      <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-400">
-                        <span className="flex items-center gap-1.5">
-                          <Package size={14} />
-                          Order #{order.id}
-                        </span>
-
-                        <span className="flex items-center gap-1.5">
-                          <CalendarDays size={14} />
-                          {order.date}
-                        </span>
-
-                        <span>
-                          Qty:{" "}
-                          <span className="font-semibold text-slate-500">
-                            {order.quantity}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Price + Action */}
-                  <div className="flex items-center justify-between gap-4 border-t border-slate-200 pt-4 lg:min-w-48 lg:flex-col lg:items-end lg:border-0 lg:pt-0">
-                    <div>
-                      <p className="text-xs text-slate-400">Total</p>
-
-                      <p className="mt-0.5 text-base font-extrabold text-[#27245B]">
-                        ₦{order.total.toLocaleString()}
-                      </p>
-                    </div>
-
-                    <Link
-                      to={`/orders/${order.id}`}
-                      className="inline-flex items-center rounded-xl bg-white px-3.5 py-2.5 text-xs font-bold text-[#27245B] shadow-sm transition hover:bg-[#27245B] hover:text-white"
-                    >
-                      View Details
-                      <ArrowRight size={14} className="ml-1.5" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+          )}
       </div>
     </CustomerLayout>
   );

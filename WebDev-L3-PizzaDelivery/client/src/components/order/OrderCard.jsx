@@ -3,6 +3,7 @@ import {
   ChevronRight,
   Package,
 } from "lucide-react";
+
 import Badge from "../ui/Badge";
 
 const OrderCard = ({ order, onViewOrder }) => {
@@ -17,6 +18,14 @@ const OrderCard = ({ order, onViewOrder }) => {
   const statusVariant =
     statusVariants[order.status] || "default";
 
+  const orderNumber = order._id
+    ? order._id.slice(-8).toUpperCase()
+    : "UNKNOWN";
+
+  const createdAt = order.createdAt
+    ? new Date(order.createdAt).toLocaleDateString()
+    : "Unknown date";
+
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition hover:shadow-md">
       {/* Top Section */}
@@ -27,7 +36,7 @@ const OrderCard = ({ order, onViewOrder }) => {
           </p>
 
           <h3 className="mt-1 text-base font-bold text-[#172033]">
-            #{order.orderNumber}
+            #{orderNumber}
           </h3>
         </div>
 
@@ -45,17 +54,17 @@ const OrderCard = ({ order, onViewOrder }) => {
 
           <div className="min-w-0 flex-1">
             <h4 className="truncate text-sm font-bold text-[#172033]">
-              {order.items[0]?.name}
+              {order.items?.[0]?.name || "Pizza Order"}
             </h4>
 
             <p className="mt-1 text-xs text-slate-500">
-              {order.items.length}{" "}
-              {order.items.length === 1 ? "item" : "items"}
+              {order.items?.length || 0}{" "}
+              {order.items?.length === 1 ? "item" : "items"}
             </p>
           </div>
 
           <p className="text-sm font-bold text-[#172033]">
-            ₦{order.total.toLocaleString()}
+            ₦{Number(order.total || 0).toLocaleString()}
           </p>
         </div>
       </div>
@@ -65,7 +74,7 @@ const OrderCard = ({ order, onViewOrder }) => {
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <CalendarDays size={15} strokeWidth={2} />
 
-          <span>{order.createdAt}</span>
+          <span>{createdAt}</span>
         </div>
 
         <button
@@ -74,7 +83,11 @@ const OrderCard = ({ order, onViewOrder }) => {
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#27245B] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#332F70]"
         >
           View Order
-          <ChevronRight size={16} strokeWidth={2} />
+
+          <ChevronRight
+            size={16}
+            strokeWidth={2}
+          />
         </button>
       </div>
     </div>

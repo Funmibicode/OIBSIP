@@ -1,4 +1,9 @@
-import { CalendarDays, CreditCard, Hash } from "lucide-react";
+import {
+  CalendarDays,
+  CreditCard,
+  Hash,
+} from "lucide-react";
+
 import OrderStatus from "./OrderStatus";
 import OrderTimeline from "./OrderTimeline";
 import OrderSummary from "./OrderSummary";
@@ -18,6 +23,17 @@ const OrderDetails = ({ order }) => {
     );
   }
 
+  const orderNumber = order._id
+    ? order._id.slice(-8).toUpperCase()
+    : "UNKNOWN";
+
+  const createdAt = order.createdAt
+    ? new Date(order.createdAt).toLocaleString()
+    : "Unknown date";
+
+  const paymentStatus =
+    order.paymentStatus || "Pending";
+
   return (
     <div className="space-y-6">
       {/* Order Header */}
@@ -29,7 +45,7 @@ const OrderDetails = ({ order }) => {
             </p>
 
             <h1 className="mt-1 text-xl font-extrabold text-[#172033]">
-              #{order.orderNumber}
+              #{orderNumber}
             </h1>
           </div>
 
@@ -38,9 +54,13 @@ const OrderDetails = ({ order }) => {
 
         {/* Order Metadata */}
         <div className="mt-6 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-3">
+          {/* Date */}
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F8F9FF] text-[#27245B]">
-              <CalendarDays size={18} strokeWidth={2} />
+              <CalendarDays
+                size={18}
+                strokeWidth={2}
+              />
             </div>
 
             <div>
@@ -49,14 +69,18 @@ const OrderDetails = ({ order }) => {
               </p>
 
               <p className="mt-0.5 text-sm font-semibold text-[#172033]">
-                {order.createdAt}
+                {createdAt}
               </p>
             </div>
           </div>
 
+          {/* Payment */}
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F8F9FF] text-[#27245B]">
-              <CreditCard size={18} strokeWidth={2} />
+              <CreditCard
+                size={18}
+                strokeWidth={2}
+              />
             </div>
 
             <div>
@@ -65,14 +89,18 @@ const OrderDetails = ({ order }) => {
               </p>
 
               <p className="mt-0.5 text-sm font-semibold text-[#172033]">
-                {order.paymentStatus}
+                {paymentStatus}
               </p>
             </div>
           </div>
 
+          {/* Payment Method */}
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F8F9FF] text-[#27245B]">
-              <Hash size={18} strokeWidth={2} />
+              <Hash
+                size={18}
+                strokeWidth={2}
+              />
             </div>
 
             <div>
@@ -81,7 +109,7 @@ const OrderDetails = ({ order }) => {
               </p>
 
               <p className="mt-0.5 text-sm font-semibold text-[#172033]">
-                {order.paymentMethod}
+                Razorpay
               </p>
             </div>
           </div>
@@ -92,7 +120,9 @@ const OrderDetails = ({ order }) => {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main */}
         <div className="space-y-6 lg:col-span-2">
-          <OrderTimeline status={order.status} />
+          <OrderTimeline
+            status={order.status}
+          />
         </div>
 
         {/* Sidebar */}

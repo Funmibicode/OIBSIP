@@ -7,42 +7,37 @@ import {
   Pizza,
   ShieldCheck,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import Button from "../../components/ui/Button";
+import useOrders from "../../hooks/useOrders";
 
 const Checkout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const { createOrder, isLoading } = useOrders();
 
   const orderData = location.state;
 
-  
   if (!orderData?.pizza) {
     return (
       <CustomerLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#27245B]/10">
-              <Pizza
-                size={28}
-                className="text-[#27245B]"
-                strokeWidth={1.8}
-              />
-            </div>
+          <div className="text-center">
+            <Pizza className="mx-auto mb-4 h-12 w-12 text-[#27245B]" />
 
-            <h1 className="mt-5 text-xl font-extrabold text-[#172033]">
+            <h2 className="text-xl font-bold text-[#172033]">
               No Pizza Selected
-            </h1>
+            </h2>
 
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Please select a pizza or build your own pizza before
-              proceeding to checkout.
+            <p className="mt-2 text-sm text-[#64748B]">
+              Please select or build a pizza before checking out.
             </p>
 
-            <Link to="/order-pizza" className="mt-6 inline-flex">
-              <Button>
-                Build Your Pizza
+            <Link to="/dashboard">
+              <Button className="mt-6">
+                Back to Dashboard
               </Button>
             </Link>
           </div>
@@ -53,299 +48,269 @@ const Checkout = () => {
 
   const { pizza, type } = orderData;
 
-  /*
-   * Preset pizzas already have a fixed price
-   
-   */
-  let subtotal = 0;
+  const customIngredients = orderData.ingredients;
 
-  if (type === "preset") {
-    subtotal = orderData.price || 0;
-  }
+  const customSubtotal =
+    (customIngredients?.base?.price || 0) +
+    (customIngredients?.sauce?.price || 0) +
+    (customIngredients?.cheese?.price || 0) +
+    (customIngredients?.vegetables || []).reduce(
+      (total, vegetable) => total + (vegetable.price || 0),
+      0
+    );
 
-  /*
-   * Custom pizzas don't have a predefined price.
-   * We calculate their price from the selected ingredients.
-   */
-  if (type === "custom") {
-    const basePrice = orderData.ingredients?.base?.price || 0;
-    const saucePrice = orderData.ingredients?.sauce?.price || 0;
-    const cheesePrice = orderData.ingredients?.cheese?.price || 0;
-
-    const vegetablesPrice =
-      orderData.ingredients?.vegetables?.reduce(
-        (total, vegetable) => total + (vegetable.price || 0),
-        0
-      ) || 0;
-
-    subtotal =
-      basePrice +
-      saucePrice +
-      cheesePrice +
-      vegetablesPrice;
-  }
+  const subtotal =
+    type === "custom"
+      ? customSubtotal
+      : orderData.price || 0;
 
   const deliveryFee = 1000;
   const total = subtotal + deliveryFee;
 
+  const getIngredients = () => {
+    if (type === "custom") {
+      return {
+        base: customIngredients?.base?.name || "",
+        sauce: customIngredients?.sauce?.name || "",
+        cheese: customIngredients?.cheese?.name || "",
+        vegetables:
+          customIngredients?.vegetables?.map(
+            (vegetable) => vegetable.name
+          ) || [],
+      };
+    }
+
+    return {
+      base: pizza.base || "",
+      sauce: pizza.sauce || "",
+      cheese: pizza.cheese || "",
+      vegetables: pizza.toppings || [],
+    };
+  };
+
+  const handlePlaceOrder = async () => {
+    try {
+      const orderPayload = {
+        items: [
+          {
+            type,
+            name: pizza.name,
+            price: subtotal,
+            quantity: 1,
+            ingredients: getIngredients(),
+          },
+        ],
+        deliveryFee,
+      };
+
+      const response = await createOrder(orderPayload);
+
+      if (response.order?._id) {
+        navigate(`/orders/${response.order._id}`);
+      }
+    } catch (error) {
+      console.error("Create order error:", error);
+    }
+  };
+
   return (
     <CustomerLayout>
-      <div className="space-y-6">
+      <div className="mx-auto max-w-5xl">
         {/* Header */}
-        <div>
+        <div className="mb-8 flex items-center gap-4">
           <Link
             to="/order-pizza"
-            className="mb-3 inline-flex items-center text-sm font-medium text-slate-500 transition hover:text-[#27245B]"
+            className="rounded-xl p-2 transition hover:bg-gray-100"
           >
-            <ArrowLeft size={16} className="mr-1.5" />
-            Back to Pizza Builder
+            <ArrowLeft className="h-5 w-5 text-[#172033]" />
           </Link>
 
-          <h1 className="text-2xl font-extrabold text-[#172033] sm:text-3xl">
-            Checkout
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold text-[#172033]">
+              Checkout
+            </h1>
 
-          <p className="mt-2 text-sm leading-6 text-slate-500">
-            Review your order, confirm your delivery details, and
-            complete your payment.
-          </p>
+            <p className="mt-1 text-sm text-[#64748B]">
+              Review your order before payment.
+            </p>
+          </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-          {/* Left Column */}
-          <div className="space-y-6">
-            {/* Delivery Information */}
-            <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main */}
+          <div className="space-y-6 lg:col-span-2">
+            {/* Delivery */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#27245B]/10">
-                  <MapPin
-                    size={20}
-                    className="text-[#27245B]"
-                    strokeWidth={2}
-                  />
+                <div className="rounded-xl bg-[#F8F9FF] p-3">
+                  <MapPin className="h-5 w-5 text-[#27245B]" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold text-[#172033]">
+                  <h2 className="font-bold text-[#172033]">
                     Delivery Information
                   </h2>
 
-                  <p className="mt-1 text-xs text-slate-500">
-                    Where should we deliver your pizza?
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-[#F8F9FF] p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-bold text-[#172033]">
-                      Home Address
-                    </p>
-
-                    <p className="mt-1 text-sm leading-6 text-slate-500">
-                      12 Example Street, Ikeja
-                      <br />
-                      Lagos, Nigeria
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="text-sm font-semibold text-[#27245B] transition hover:text-yellow-500"
-                  >
-                    Change
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            {/* Order Details */}
-            <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#27245B]/10">
-                  <Package
-                    size={20}
-                    className="text-[#27245B]"
-                    strokeWidth={2}
-                  />
-                </div>
-
-                <div>
-                  <h2 className="text-lg font-bold text-[#172033]">
-                    Your Order
-                  </h2>
-
-                  <p className="mt-1 text-xs text-slate-500">
-                    Review your pizza before paying.
+                  <p className="text-sm text-[#64748B]">
+                    Where should we deliver your order?
                   </p>
                 </div>
               </div>
 
               <div className="rounded-xl bg-[#F8F9FF] p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#27245B]">
-                    <Pizza
-                      size={26}
-                      className="text-yellow-400"
-                      strokeWidth={1.8}
+                <p className="font-medium text-[#172033]">
+                  12 Example Street, Ikeja
+                </p>
+
+                <p className="mt-1 text-sm text-[#64748B]">
+                  Lagos, Nigeria
+                </p>
+              </div>
+            </div>
+
+            {/* Order */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="rounded-xl bg-[#F8F9FF] p-3">
+                  <Package className="h-5 w-5 text-[#27245B]" />
+                </div>
+
+                <div>
+                  <h2 className="font-bold text-[#172033]">
+                    Your Order
+                  </h2>
+
+                  <p className="text-sm text-[#64748B]">
+                    Review your pizza.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#F8F9FF]">
+                  {pizza.image ? (
+                    <img
+                      src={pizza.image}
+                      alt={pizza.name}
+                      className="h-full w-full object-cover"
                     />
-                  </div>
+                  ) : (
+                    <Pizza className="h-10 w-10 text-[#27245B]" />
+                  )}
+                </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <h3 className="text-sm font-bold text-[#172033]">
-                        {pizza.name}
-                      </h3>
+                <div className="flex-1">
+                  <h3 className="font-bold text-[#172033]">
+                    {pizza.name}
+                  </h3>
 
-                      <span className="text-sm font-extrabold text-[#27245B]">
-                        ₦{subtotal.toLocaleString()}
-                      </span>
-                    </div>
+                  <div className="mt-2 space-y-1 text-sm text-[#64748B]">
+                    <p>Base: {getIngredients().base}</p>
+                    <p> Sauce: {getIngredients().sauce}</p>
+                    <p>Cheese: {getIngredients().cheese}</p>
 
-                    <p className="mt-1 text-xs text-slate-500">
-                      {pizza.base} base · {pizza.sauce} sauce ·{" "}
-                      {pizza.cheese} cheese
-                    </p>
-
-                    {pizza.toppings?.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {pizza.toppings.map((topping) => (
-                          <span
-                            key={topping}
-                            className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500"
-                          >
-                            {topping}
-                          </span>
-                        ))}
-                      </div>
+                    {getIngredients().vegetables.length > 0 && (
+                      <p>
+                        Toppings:{" "}
+                        {getIngredients().vegetables.join(", ")}
+                      </p>
                     )}
                   </div>
                 </div>
               </div>
-            </section>
+            </div>
 
-            {/* Payment Method */}
-            <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+            {/* Payment */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#27245B]/10">
-                  <CreditCard
-                    size={20}
-                    className="text-[#27245B]"
-                    strokeWidth={2}
-                  />
+                <div className="rounded-xl bg-[#F8F9FF] p-3">
+                  <CreditCard className="h-5 w-5 text-[#27245B]" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold text-[#172033]">
+                  <h2 className="font-bold text-[#172033]">
                     Payment Method
                   </h2>
 
-                  <p className="mt-1 text-xs text-slate-500">
-                    Secure payment powered by Razorpay.
+                  <p className="text-sm text-[#64748B]">
+                    Secure payment with Razorpay.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 rounded-xl border-2 border-[#27245B] bg-[#27245B]/5 p-4">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#27245B]">
-                  <Check
-                    size={13}
-                    className="text-white"
-                    strokeWidth={3}
-                  />
-                </div>
+              <div className="flex items-center justify-between rounded-xl border border-gray-200 p-4">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="h-5 w-5 text-[#27245B]" />
 
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-[#172033]">
+                  <span className="font-medium text-[#172033]">
                     Razorpay
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-500">
-                    Card, bank transfer, USSD and other supported methods.
-                  </p>
+                  </span>
                 </div>
 
-                <CreditCard
-                  size={20}
-                  className="text-[#27245B]"
-                  strokeWidth={1.8}
-                />
+                <Check className="h-5 w-5 text-green-600" />
               </div>
-            </section>
+            </div>
           </div>
 
-          {/* Right Column */}
-          <aside className="h-fit lg:sticky lg:top-6">
-            <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
-              <h2 className="text-lg font-bold text-[#172033]">
+          {/* Summary */}
+          <div>
+            <div className="sticky top-6 rounded-2xl bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-lg font-bold text-[#172033]">
                 Order Summary
               </h2>
 
-              <div className="mt-5 space-y-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">
-                    {type === "preset"
-                      ? "Pizza"
-                      : "Custom Pizza"}
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-[#64748B]">
+                    Subtotal
                   </span>
 
-                  <span className="font-semibold text-[#172033]">
+                  <span className="font-medium text-[#172033]">
                     ₦{subtotal.toLocaleString()}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">
+                <div className="flex justify-between">
+                  <span className="text-[#64748B]">
                     Delivery Fee
                   </span>
 
-                  <span className="font-semibold text-[#172033]">
+                  <span className="font-medium text-[#172033]">
                     ₦{deliveryFee.toLocaleString()}
                   </span>
                 </div>
 
-                <div className="border-t border-slate-100 pt-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#172033]">
-                      Total
-                    </span>
+                <div className="my-4 border-t border-gray-200" />
 
-                    <span className="text-xl font-extrabold text-[#27245B]">
-                      ₦{total.toLocaleString()}
-                    </span>
-                  </div>
+                <div className="flex justify-between">
+                  <span className="font-bold text-[#172033]">
+                    Total
+                  </span>
+
+                  <span className="text-xl font-bold text-[#27245B]">
+                    ₦{total.toLocaleString()}
+                  </span>
                 </div>
               </div>
 
-              {/* Payment Button */}
               <Button
-                type="button"
-                size="lg"
                 className="mt-6 w-full"
+                onClick={handlePlaceOrder}
+                disabled={isLoading}
               >
-                Pay ₦{total.toLocaleString()}
+                {isLoading ? "Processing..." : "Pay with Razorpay"}
               </Button>
 
-              <div className="mt-4 flex items-start gap-2 rounded-xl bg-green-50 p-3">
-                <ShieldCheck
-                  size={17}
-                  className="mt-0.5 shrink-0 text-green-600"
-                  strokeWidth={2}
-                />
+              <div className="mt-5 flex gap-3 rounded-xl bg-[#F8F9FF] p-4">
+                <ShieldCheck className="h-5 w-5 shrink-0 text-[#27245B]" />
 
-                <p className="text-xs leading-5 text-green-700">
-                  Your payment will be securely processed through
+                <p className="text-xs leading-5 text-[#64748B]">
+                  Your payment is securely processed through
                   Razorpay test mode.
                 </p>
               </div>
-
-              <p className="mt-4 text-center text-[11px] leading-5 text-slate-400">
-                By completing your payment, you agree to the terms and
-                conditions of the order.
-              </p>
-            </section>
-          </aside>
+            </div>
+          </div>
         </div>
       </div>
     </CustomerLayout>
