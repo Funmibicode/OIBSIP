@@ -7,7 +7,7 @@ import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import pizzaRoutes from "./routes/pizzaRoutes.js";
 import ingredientRoutes from "./routes/ingredientRoutes.js";
-
+import orderRoutes from "./routes/orderRoutes.js";
 
 dotenv.config();
 
@@ -30,7 +30,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/pizzas", pizzaRoutes);
 app.use("/api/ingredients", ingredientRoutes);
-
+app.use("/api/orders", orderRoutes);
 
 
 app.get("/api/health", (req, res) => {
