@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { useCallback, useState } from "react";
 import orderService from "../services/orderService";
 
 const useOrders = () => {

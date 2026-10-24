@@ -1,12 +1,18 @@
 import { Check, ChevronDown } from "lucide-react";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const OrderStatusControl = ({
   currentStatus,
   onStatusChange,
   disabled = false,
 }) => {
-  const [status, setStatus] = useState(currentStatus || "Order Received");
+  const [status, setStatus] = useState(
+    currentStatus || "Order Received"
+  );
+
+  useEffect(() => {
+    setStatus(currentStatus || "Order Received");
+  }, [currentStatus]);
 
   const statuses = [
     "Order Received",

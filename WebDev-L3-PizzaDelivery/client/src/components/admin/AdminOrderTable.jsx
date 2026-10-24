@@ -1,8 +1,12 @@
-import { Eye, Package } from "lucide-react";
-import { Link } from 'react-router-dom';
+import { Package } from "lucide-react";
 import Badge from "../ui/Badge";
+import OrderStatusControl from "./OrderStatusControl";
 
-const AdminOrderTable = ({ orders = [] }) => {
+const AdminOrderTable = ({
+  orders = [],
+  onStatusChange,
+  updatingOrderId = null,
+}) => {
   const getStatusVariant = (status) => {
     const variants = {
       "Order Received": "info",
@@ -19,11 +23,19 @@ const AdminOrderTable = ({ orders = [] }) => {
     const variants = {
       Paid: "success",
       Pending: "warning",
-      Refunded: "danger",
       Failed: "danger",
     };
 
     return variants[status] || "default";
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "—";
+
+    return new Date(date).toLocaleString("en-NG", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
   };
 
   if (!orders.length) {
@@ -48,13 +60,17 @@ const AdminOrderTable = ({ orders = [] }) => {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-      {/* Desktop Table */}
+      {/* Desktop */}
       <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[900px]">
+        <table className="w-full min-w-[1100px]">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/70">
               <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                 Order
+              </th>
+
+              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                Customer
               </th>
 
               <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -72,46 +88,52 @@ const AdminOrderTable = ({ orders = [] }) => {
               <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                 Status
               </th>
-
-              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                Action
-              </th>
             </tr>
           </thead>
 
           <tbody>
             {orders.map((order) => (
               <tr
-                key={order.id}
+                key={order._id}
                 className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50"
               >
                 {/* Order */}
                 <td className="px-5 py-4">
-                  <div>
-                    <p className="text-sm font-bold text-[#172033]">
-                      {order.orderNumber}
-                    </p>
+                  <p className="text-sm font-bold text-[#172033]">
+                    #{order._id.slice(-6).toUpperCase()}
+                  </p>
 
-                    <p className="mt-1 text-xs text-slate-400">
-                      {order.createdAt}
-                    </p>
-                  </div>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {formatDate(order.createdAt)}
+                  </p>
+                </td>
+
+                {/* Customer */}
+                <td className="px-5 py-4">
+                  <p className="text-sm font-semibold text-[#172033]">
+                    {order.user?.name || "Unknown"}
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-400">
+                    {order.user?.email || "No email"}
+                  </p>
                 </td>
 
                 {/* Items */}
                 <td className="px-5 py-4">
-                  <div>
-                    <p className="text-sm font-semibold text-[#172033]">
-                      {order.items.length}{" "}
-                      {order.items.length === 1 ? "item" : "items"}
-                    </p>
+                  <p className="text-sm font-semibold text-[#172033]">
+                    {order.items.length}{" "}
+                    {order.items.length === 1 ? "item" : "items"}
+                  </p>
 
-                    <p className="mt-1 max-w-[180px] truncate text-xs text-slate-400">
-                      {order.items
-                        .map((item) => `${item.quantity}x ${item.name}`)
-                        .join(", ")}
-                    </p>
-                  </div>
+                  <p className="mt-1 max-w-[200px] truncate text-xs text-slate-400">
+                    {order.items
+                      .map(
+                        (item) =>
+                          `${item.quantity}x ${item.name}`
+                      )
+                      .join(", ")}
+                  </p>
                 </td>
 
                 {/* Total */}
@@ -123,33 +145,27 @@ const AdminOrderTable = ({ orders = [] }) => {
 
                 {/* Payment */}
                 <td className="px-5 py-4">
-                  <div>
-                    <Badge variant={getPaymentVariant(order.paymentStatus)}>
-                      {order.paymentStatus}
-                    </Badge>
-
-                    <p className="mt-1 text-xs text-slate-400">
-                      {order.paymentMethod}
-                    </p>
-                  </div>
+                  <Badge
+                    variant={getPaymentVariant(
+                      order.paymentStatus
+                    )}
+                  >
+                    {order.paymentStatus}
+                  </Badge>
                 </td>
 
                 {/* Status */}
                 <td className="px-5 py-4">
-                  <Badge variant={getStatusVariant(order.status)}>
-                    {order.status}
-                  </Badge>
-                </td>
-
-                {/* Action */}
-                <td className="px-5 py-4">
-                  <Link
-                    to={`/orders/${order.id}`}
-                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-[#27245B] transition hover:bg-[#27245B]/10"
-                  >
-                    <Eye size={15} strokeWidth={2} />
-                    View
-                  </Link>
+                  <OrderStatusControl
+                    currentStatus={order.status}
+                    disabled={updatingOrderId === order._id}
+                    onStatusChange={(newStatus) =>
+                      onStatusChange?.(
+                        order._id,
+                        newStatus
+                      )
+                    }
+                  />
                 </td>
               </tr>
             ))}
@@ -157,22 +173,18 @@ const AdminOrderTable = ({ orders = [] }) => {
         </table>
       </div>
 
-      {/* Mobile Cards */}
+      {/* Mobile */}
       <div className="divide-y divide-slate-100 md:hidden">
         {orders.map((order) => (
-          <div
-            key={order.id}
-            className="p-5"
-          >
-            {/* Header */}
+          <div key={order._id} className="p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-bold text-[#172033]">
-                  {order.orderNumber}
+                  #{order._id.slice(-6).toUpperCase()}
                 </p>
 
                 <p className="mt-1 text-xs text-slate-400">
-                  {order.createdAt}
+                  {formatDate(order.createdAt)}
                 </p>
               </div>
 
@@ -181,16 +193,29 @@ const AdminOrderTable = ({ orders = [] }) => {
               </Badge>
             </div>
 
-            {/* Items */}
+            <div className="mt-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Customer
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-[#172033]">
+                {order.user?.name || "Unknown"}
+              </p>
+
+              <p className="text-xs text-slate-400">
+                {order.user?.email || "No email"}
+              </p>
+            </div>
+
             <div className="mt-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Items
               </p>
 
               <div className="mt-2 space-y-1">
-                {order.items.map((item) => (
+                {order.items.map((item, index) => (
                   <div
-                    key={item.id}
+                    key={`${order._id}-${index}`}
                     className="flex items-center justify-between gap-3 text-sm"
                   >
                     <span className="truncate text-slate-600">
@@ -205,7 +230,6 @@ const AdminOrderTable = ({ orders = [] }) => {
               </div>
             </div>
 
-            {/* Order Details */}
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs text-slate-400">
@@ -224,7 +248,9 @@ const AdminOrderTable = ({ orders = [] }) => {
 
                 <div className="mt-1">
                   <Badge
-                    variant={getPaymentVariant(order.paymentStatus)}
+                    variant={getPaymentVariant(
+                      order.paymentStatus
+                    )}
                   >
                     {order.paymentStatus}
                   </Badge>
@@ -232,14 +258,18 @@ const AdminOrderTable = ({ orders = [] }) => {
               </div>
             </div>
 
-            {/* Action */}
-            <Link
-              to={`/orders/${order.id}`}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-[#27245B] transition hover:bg-[#27245B] hover:text-white"
-            >
-              <Eye size={17} strokeWidth={2} />
-              View Order
-            </Link>
+            <div className="mt-4">
+              <OrderStatusControl
+                currentStatus={order.status}
+                disabled={updatingOrderId === order._id}
+                onStatusChange={(newStatus) =>
+                  onStatusChange?.(
+                    order._id,
+                    newStatus
+                  )
+                }
+              />
+            </div>
           </div>
         ))}
       </div>

@@ -11,6 +11,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import Button from "../../components/ui/Button";
 import useOrders from "../../hooks/useOrders";
+import paymentService from "../../services/paymentService";
+
 
 const Checkout = () => {
   const location = useLocation();
@@ -89,30 +91,116 @@ const Checkout = () => {
   };
 
   const handlePlaceOrder = async () => {
-    try {
-      const orderPayload = {
-        items: [
-          {
-            type,
-            name: pizza.name,
-            price: subtotal,
-            quantity: 1,
-            ingredients: getIngredients(),
-          },
-        ],
-        deliveryFee,
-      };
+  try {
+    const orderPayload = {
+      items: [
+        {
+          type,
+          name: pizza.name,
+          price: subtotal,
+          quantity: 1,
+          ingredients: getIngredients(),
+        },
+      ],
+      deliveryFee,
+    };
 
-      const response = await createOrder(orderPayload);
+    // 1. Create our MongoDB order
+    const orderResponse = await createOrder(orderPayload);
 
-      if (response.order?._id) {
-        navigate(`/orders/${response.order._id}`);
-      }
-    } catch (error) {
-      console.error("Create order error:", error);
+    const createdOrder = orderResponse.order;
+
+    if (!createdOrder?._id) {
+      throw new Error("Order was not created.");
     }
-  };
 
+    // 2. Create Razorpay order
+    const paymentResponse =
+      await paymentService.createRazorpayOrder(
+        createdOrder._id
+      );
+
+    const razorpayOrder =
+      paymentResponse.razorpayOrder;
+
+    if (!razorpayOrder?.id) {
+      throw new Error("Unable to create Razorpay order.");
+    }
+
+    // 3. Open Razorpay Checkout
+    const options = {
+      key: paymentResponse.keyId,
+
+      amount: razorpayOrder.amount,
+
+      currency: razorpayOrder.currency,
+
+      name: "Pizzy",
+
+      description: createdOrder.items[0].name,
+
+      order_id: razorpayOrder.id,
+
+      handler: async (response) => {
+        try {
+          // 4. Verify payment on our backend
+          const verificationResponse =
+            await paymentService.verifyPayment({
+              orderId: createdOrder._id,
+
+              razorpay_order_id:
+                response.razorpay_order_id,
+
+              razorpay_payment_id:
+                response.razorpay_payment_id,
+
+              razorpay_signature:
+                response.razorpay_signature,
+            });
+
+          if (verificationResponse.success) {
+            navigate(
+              `/orders/${createdOrder._id}`
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Payment verification error:",
+            error
+          );
+        }
+      },
+
+      theme: {
+        color: "#27245B",
+      },
+
+      modal: {
+        ondismiss: () => {
+          console.log(
+            "Razorpay Checkout closed."
+          );
+        },
+      },
+    };
+
+    if (!window.Razorpay) {
+      throw new Error(
+        "Razorpay Checkout failed to load."
+      );
+    }
+
+    const razorpay = new window.Razorpay(options);
+
+    razorpay.open();
+  } catch (error) {
+    console.error(
+      "Payment initialization error:",
+      error
+    );
+  }
+};
+  
   return (
     <CustomerLayout>
       <div className="mx-auto max-w-5xl">
